@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/bootstrap/bootstrap.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="/static/bootstrap/bootstrap.responsive.css" type="text/css" media="screen, projection">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/scripts/showdown.js"></script>
+    <script type="text/javascript">
+        function live_preview(){
+            jQuery("#preview_heading").html(jQuery("[name=title]").val());
+            if(jQuery("[name=format]").val()=="markdown"){
+                var converter = new Showdown.converter();
+                var parsed_html = converter.makeHtml(jQuery("[name=content]").val());
+                jQuery("#preview_content").html(parsed_html);
+            } else {
+                jQuery("#preview_content").html(jQuery("[name=content]").val());
+            }
+        }
+
+        function show_error(message){
+            jQuery("#error_box").empty().html(message).show();
+            setTimeout(function(){
+                jQuery("#error_box").hide(200);
+            },5000);
+        }
+
+        function show_message(message){
+            jQuery("#message_box").empty().html(message).show();
+            setTimeout(function(){
+                jQuery("#message_box").hide(200);
+            },5000);
+        }
+
+        function init(){
+            jQuery("#fetch").click(function(){
+                var post_id = jQuery("[name=post_id]").val();
+                jQuery.ajax({
+                    "url":"/post/",
+                    "type":"GET",
+                    "data":{"post_id":post_id},
+                    "dataType":"json",
+                    success:function(data){
+                        jQuery("[name=title]").val(data["title"]);
+                        jQuery("[name=content]").val(data["content"]);
+                        jQuery("[name=format]").val(data["format"]);
+                        jQuery("[name=status]").val(data["status"]);
+                        live_preview();
+                    },
+                    error:function(err){
+                        show_error(err.responseText);
+                    }
+                })
+            });
+
+            jQuery("#update").click(function(){
+                var post_data = {
+                    "title": jQuery("[name=title]").val(),
+                    "content" : jQuery("[name=content]").val(),
+                    "format" : jQuery("[name=format]").val(),
+                    "status" : jQuery("[name=status]").val()
+                }
+                if(jQuery("[name=post_id]").val()){
+                    post_data["post_id"] = jQuery("[name=post_id]").val();
+                }
+                var post_json = JSON.stringify(post_data);
+                jQuery.ajax({
+                    "url":"/post/",
+                    "type":"POST",
+                    "data":{"data":post_json},
+                    "dataType":"json",
+                    success:function(data){
+                        jQuery("[name=title]").val(data["title"]);
+                        jQuery("[name=content]").val(data["content"]);
+                        jQuery("[name=format]").val(data["format"]);
+                        jQuery("[name=status]").val(data["status"]);
+                        live_preview();
+                        show_message("Post updated");
+                    },
+                    error:function(err){
+                        show_error(err.responseText);
+                    }
+                })
+                return false;
+            });
+
+            jQuery(jQuery("[name=content]")).keyup(function(){
+                live_preview();
+            });
+            jQuery(jQuery("[name=title]")).keyup(function(){
+                live_preview();
+            });
+        }
+        jQuery(document).ready(function(){
+            init();
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <h1>Matilda Control Panel</h1>
+        <div class="span6">
+            <form>
+                <legend>Add / Edit Post</legend>
+                <div class="alert alert-error" id="error_box" style="display:none;"></div>
+                <div class="alert alert-success" id="message_box" style="display:none;"></div>
+                <label>Post ID</label>
+                <div class="input-append">
+                    <input name="post_id" type="text" placeholder="Enter Post ID"><button class="btn" type="button" id="fetch">Fetch</button>
+                </div>
+                <label>Title</label>
+                <input name="title" type="text">
+                <label>Post Format</label>
+                <select name="format">
+                    <option value="markdown" selected>Markdown</option>
+                    <option value="html">HTML</option>
+                </select>
+                <label>Status</label>
+                <select name="status">
+                    <option value="draft" selected>Draft</option>
+                    <option value="publish">Publish</option>
+                </select>
+
+                <label>Content</label>
+                <textarea name="content" rows="20" class="span5"></textarea>
+                <br />
+                <button class="btn btn-primary" id="update">Update</button>
+            </form>
+        </div>
+        <div class="span6">
+            <legend>Preview</legend>
+            <h2 id="preview_heading"></h2>
+            <div id="preview_content"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
