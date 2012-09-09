@@ -1,0 +1,3 @@
+TEMPLATE_DIR = ""
+OUTPUT_DIR = ""
+POSTS_DIR = ""
