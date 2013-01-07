@@ -7,7 +7,6 @@ class RssGenerator(object):
         pass
 
     def generate(self,posts):
-        print posts
         items = []
         for p in posts:
             link = getattr(settings, "BLOG_LINK", "") + "/" + p["output_file_name"] + ".html"
