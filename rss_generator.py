@@ -10,11 +10,12 @@ class RssGenerator(object):
         print posts
         items = []
         for p in posts:
+            link = getattr(settings, "BLOG_LINK", "") + "/" + p["output_file_name"] + ".html"
             item = PyRSS2Gen.RSSItem(
                  title = p["title"],
-                 link = "http://www.dalkescientific.com/news/030906-PyRSS2Gen.html",
+                 link = link,
                  description = p["content"],
-                 guid = PyRSS2Gen.Guid("http://www.dalkescientific.com/news/030906-PyRSS2Gen.html"),
+                 guid = PyRSS2Gen.Guid(link),
                  pubDate = p["pub_date"])
             items.append(item)
 
