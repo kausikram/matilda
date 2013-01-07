@@ -4,6 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 import settings
 import re
 from storages import get_storage
+from rss_generator import RssGenerator
 
 from unicodedata import normalize
 
@@ -40,6 +41,7 @@ class Composer(object):
     def __init__(self,*args,**kwargs):
         self.post_list = []
         self.post_name_list = []
+        self.rss_generator = RssGenerator()
         loader = FileSystemLoader(os.path.abspath(settings.TEMPLATE_DIR))
         self.env = Environment(loader=loader)
         self.env.globals["settings"] = settings
@@ -67,6 +69,12 @@ class Composer(object):
     def is_new_post(self, post):
         return self.post_list.index(post) == len(self.post_list) - 1
 
+    def build_rss_feed(self,posts=[]):
+        rss_data = self.rss_generator.generate(posts)
+        f = open(os.path.abspath(settings.RSS_PATH),"w")
+        f.write(rss_data)
+        f.close()
+
     def build(self, post):
         if self.is_new_post(post):
             self.build_index_page(post)
@@ -86,6 +94,8 @@ class Composer(object):
         for p in self.post_list:
             print p["pub_date"], p["output_file_name"]
             self.build(p)
+
+        self.build_rss_feed(self.post_list[-10:][::-1])
 
         print "-" * 50
         print "len of posts", len(self.post_list)
